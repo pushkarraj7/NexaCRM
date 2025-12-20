@@ -12,3 +12,59 @@
     transform: scale(1);
   }
 }
+
+/* Target the month/year header in react-datepicker */
+.custom-datepicker .react-datepicker__header {
+  background-color: #000; /* black background */
+  color: #fff;            /* white text */
+}
+
+/* Optional: change the navigation arrows color */
+.custom-datepicker .react-datepicker__navigation-icon::before {
+  border-color: #fff;
+}
+
+/* Optional: day names (Mon, Tue, etc.) color */
+.custom-datepicker .react-datepicker__day-name {
+  color: #fff;
+}
+
+/* Header background */
+.custom-datepicker .react-datepicker__header {
+  background-color: #000; /* black background */
+}
+
+/* Month/Year text */
+.custom-datepicker .react-datepicker__current-month {
+  color: #fff; /* white text */
+}
+
+/* Day names (Mon, Tue, etc.) */
+.custom-datepicker .react-datepicker__day-name {
+  color: #fff; 
+}
+
+/* Navigation arrows */
+.custom-datepicker .react-datepicker__navigation-icon::before {
+  border-color: #fff; 
+}
+
+/* Optional: selected day background */
+.custom-datepicker .react-datepicker__day--selected {
+  background-color: #333; 
+  color: #fff;
+}
+
+/* Optional: today's date highlight */
+.custom-datepicker .react-datepicker__day--today {
+  color: #fff;
+  border-color: #fff;
+}
+
+/* Current date (today) */
+.custom-datepicker .react-datepicker__day--today {
+  background-color: #ff9800; /* orange background */
+  color: #fff;               /* white text */
+  font-weight: bold;         /* make it bold */
+  border-radius: 50%;        /* make it circular */
+}

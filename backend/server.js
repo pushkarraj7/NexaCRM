@@ -3,6 +3,8 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const itemRoutes = require('./routes/itemRoutes');
+const agreementRoutes = require('./routes/agreementRoutes'); // NEW
 
 // Load env vars
 dotenv.config();
@@ -19,10 +21,19 @@ app.use(express.urlencoded({ extended: false }));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/items', itemRoutes);
+app.use('/api/agreements', agreementRoutes); // NEW
 
 // Basic route
 app.get('/', (req, res) => {
-  res.json({ message: 'API is running...' });
+  res.json({ 
+    message: 'API is running...',
+    endpoints: {
+      auth: '/api/auth',
+      items: '/api/items',
+      agreements: '/api/agreements',
+    }
+  });
 });
 
 // Error handler
