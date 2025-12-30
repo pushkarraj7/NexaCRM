@@ -2,81 +2,88 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [focusedField, setFocusedField] = useState(null);
+  const [loginType, setLoginType] = useState("staff"); // 'staff' or 'customer'
   const navigate = useNavigate();
 
-  // const handleLogin = async (e) => {
-  //   e.preventDefault();
-  //   setError("");
-  //   setIsLoading(true);
-
-  //   await new Promise((resolve) => setTimeout(resolve, 800));
-
-  //   if (email === "admin@gmail.com" && password === "admin@123") {
-  //     localStorage.setItem("role", "admin"); // ✅ store role
-  //     navigate("/admin/dashboard");
-  //   } else if (email === "finance@gmail.com" && password === "finance@123") {
-  //     localStorage.setItem("role", "finance"); // ✅ store role
-  //     navigate("/finance/dashboard");
-  //   } else if (email === "customer@gmail.com" && password === "customer@123") {
-  //     localStorage.setItem("role", "customer"); // ✅ store role
-  //     navigate("/customer/dashboard");
-  //   } else {
-  //     setError("Invalid email or password");
-  //   }
-  //   setIsLoading(false);
-  // };
-
   const handleLogin = async (e) => {
-  e.preventDefault();
-  setError("");
-  setIsLoading(true);
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
-  try {
-    const response = await fetch('http://localhost:5000/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      // Store token and role
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('role', data.role);
-      
-      // Navigate based on role
-      if (data.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else if (data.role === 'finance') {
-        navigate('/finance/dashboard');
-      } else {
-        navigate('/customer/dashboard');
-      }
-    } else {
-      setError(data.message || 'Invalid email or password');
+    if (loginType === "customer" && identifier.includes("@")) {
+      setError("Please use your Customer ID, not email.");
+      setIsLoading(false);
+      return;
     }
-  } catch (error) {
-    setError('Something went wrong. Please try again.');
-  } finally {
-    setIsLoading(false);
-  }
-};
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && email && password) {
-      handleLogin(e); // ✅ FIX
+    try {
+      // Choose endpoint based on login type
+      const endpoint = loginType === "customer"
+        ? 'http://localhost:5000/api/auth/customer-login'
+        : 'http://localhost:5000/api/auth/login';
+
+      // const body = loginType === "customer"
+      //   ? { identifier, password } // Customer can use customerId or email
+      //   : { email: identifier, password }; // Staff uses email only
+
+      const body = loginType === "customer"
+        ? { identifier, password } // backend expects `identifier`
+        : { email: identifier, password };
+
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store token and user info
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.role || 'customer');
+
+        // Store user details
+        if (loginType === "customer") {
+          localStorage.setItem('customerId', data._id); // MongoDB ObjectId ✅
+          localStorage.setItem('userName', data.name);
+          navigate('/customer/dashboard');
+        }
+        else {
+          localStorage.setItem('userName', data.name);
+          // Navigate based on role
+          if (data.role === 'admin') {
+            navigate('/admin/dashboard');
+          } else if (data.role === 'finance') {
+            navigate('/finance/dashboard');
+          } else {
+            navigate('/customer/dashboard');
+          }
+        }
+      } else {
+        setError(data.message || 'Invalid credentials');
+      }
+    } catch (error) {
+      setError('Something went wrong. Please try again.');
+      console.error('Login error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && identifier && password) {
+      handleLogin(e);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-6 relative">
@@ -94,7 +101,45 @@ const Login = () => {
             </svg>
           </div>
           <h1 className="text-3xl font-semibold text-gray-900 mb-2">Welcome back</h1>
-          <p className="text-gray-500">Enter your credentials to continue</p>
+          <p className="text-gray-500">
+            {loginType === "customer"
+              ? "Enter your customer ID"
+              : "Enter your credentials to continue"}
+          </p>
+        </div>
+
+        {/* Login Type Toggle */}
+        <div className="mb-6 bg-gray-100 p-1 rounded-xl flex gap-1">
+          <button
+            type="button"
+            onClick={() => {
+              setLoginType("staff");
+              setError("");
+              setIdentifier("");
+              setPassword("");
+            }}
+            className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${loginType === "staff"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
+              }`}
+          >
+            Staff Login
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setLoginType("customer");
+              setError("");
+              setIdentifier("");
+              setPassword("");
+            }}
+            className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${loginType === "customer"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
+              }`}
+          >
+            Customer Login
+          </button>
         </div>
 
         {/* Form Card */}
@@ -111,22 +156,31 @@ const Login = () => {
 
           {/* Form Fields */}
           <div className="space-y-5">
-            {/* Email Field */}
+            {/* Email/Customer ID Field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
+                {loginType === "customer" ? "Customer ID" : "Email"}
               </label>
               <div className="relative">
                 <input
-                  type="email"
-                  placeholder="name@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onFocus={() => setFocusedField('email')}
-                  onBlur={() => setFocusedField(null)}
+                  type="text"
+                  placeholder={
+                    loginType === "customer"
+                      ? "Enter Customer ID (e.g., CUST001)"
+                      : "name@company.com"
+                  }
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   onKeyPress={handleKeyPress}
                   className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all duration-200"
                 />
+                {loginType === "customer" && (
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                    </svg>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -141,8 +195,6 @@ const Login = () => {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => setFocusedField('password')}
-                  onBlur={() => setFocusedField(null)}
                   onKeyPress={handleKeyPress}
                   className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all duration-200 pr-12"
                 />
@@ -183,7 +235,7 @@ const Login = () => {
             {/* Login Button */}
             <button
               onClick={handleLogin}
-              disabled={isLoading}
+              disabled={isLoading || !identifier || !password}
               className="w-full bg-gray-900 text-white font-medium py-3.5 rounded-xl hover:bg-gray-800 transform hover:translate-y-[-1px] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:bg-gray-900 flex items-center justify-center gap-2 shadow-sm mt-6"
             >
               {isLoading ? (
@@ -199,6 +251,23 @@ const Login = () => {
               )}
             </button>
           </div>
+
+          {/* Info Text */}
+          {loginType === "customer" && (
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">Customer Login</p>
+                  <p className="text-blue-700">
+                    Please use your assigned Customer ID to log in.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,31 +1,30 @@
+// routes/agreementRoutes.js
 const express = require('express');
 const router = express.Router();
-const {
-  getAgreements,
-  getAgreement,
-  createAgreement,
-  updateAgreement,
-  deleteAgreement,
-  getAgreementsByStatus,
-  updateAgreementStatus,
-} = require('../controllers/agreementController');
+const customerItemController = require('../controllers/customerItemController');
 const { protect } = require('../middleware/auth');
 
-// Apply authentication middleware to all routes
-// If you want public access, remove protect middleware
+// Debug middleware
+router.use((req, res, next) => {
+    console.log(`🔍 Agreement Route Hit: ${req.method} ${req.path}`);
+    next();
+});
 
-// Main CRUD routes
-router.route('/')
-  .get(protect, getAgreements)
-  .post(protect, createAgreement);
+router.use(protect);
 
-router.route('/:id')
-  .get(protect, getAgreement)
-  .put(protect, updateAgreement)
-  .delete(protect, deleteAgreement);
+// Get all agreements
+router.get('/', customerItemController.getAllAgreements);
 
-// Status-specific routes
-router.get('/status/:status', protect, getAgreementsByStatus);
-router.patch('/:id/status', protect, updateAgreementStatus);
+// Get agreement by ID
+router.get('/:id', customerItemController.getAgreementById);
+
+// Create new agreement
+router.post('/', customerItemController.createAgreement);
+
+// Update agreement
+router.put('/:id', customerItemController.updateAgreement);
+
+// Delete agreement
+router.delete('/:id', customerItemController.deleteAgreement);
 
 module.exports = router;

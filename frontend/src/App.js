@@ -2,13 +2,21 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./components/auth/Login";
 import AdminDashboard from "./components/pages/admin/pages/Dashboard";
-import CustomerDashboard from "./components/pages/customer/Dashboard";
-import FinanceDashboard from "./components/pages/finance/Dashboard";
+import FinanceDashboard from "./components/pages/finance/pages/Dashboard";
 import AdminCustomers from "./components/pages/admin/pages/Customers";
 import Items from "./components/pages/admin/pages/Items";
-import Agreements from "./components/pages/admin/pages/Agreements";
+import CustomerItem from "./components/pages/admin/pages/Customer-Item";
+// import Agreements from "./components/pages/admin/pages/Agreements";
 import Orders from "./components/pages/admin/pages/Orders";
+import AdminTeam from "./components/pages/admin/pages/Team";
 import Analytics from "./components/pages/admin/pages/Analytics";
+import ProformaInvoices from "./components/pages/admin/pages/ProformaInvoices";
+import SaleInvoices from "./components/pages/admin/pages/SaleInvoices";
+
+import CustomerDashboard from "./components/pages/customer/pages/Dashboard";
+import CustomerOrders from "./components/pages/customer/pages/Orders";
+import CustomerAgreement from "./components/pages/customer/pages/Agreement";
+import CustomerProductList from "./components/pages/customer/pages/ProductList";
 
 // ProtectedRoute Component
 const ProtectedRoute = ({ children, role }) => {
@@ -52,11 +60,20 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/admin/agreements"
           element={
             <ProtectedRoute role="admin">
               <Agreements />
+            </ProtectedRoute>
+          }
+        /> */}
+
+        <Route
+          path="/admin/customer-item"
+          element={
+            <ProtectedRoute role="admin">
+              <CustomerItem />
             </ProtectedRoute>
           }
         />
@@ -65,6 +82,30 @@ function App() {
           element={
             <ProtectedRoute role="admin">
               <Orders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/team"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminTeam />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/proforma-invoices"
+          element={
+            <ProtectedRoute role="admin">
+              <ProformaInvoices />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/sale-invoices"
+          element={
+            <ProtectedRoute role="admin">
+              <SaleInvoices />
             </ProtectedRoute>
           }
         />
@@ -83,6 +124,32 @@ function App() {
           element={
             <ProtectedRoute role="customer">
               <CustomerDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/customer/orders"
+          element={
+            <ProtectedRoute role="customer">
+              <CustomerOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/agreements"
+          element={
+            <ProtectedRoute role="customer">
+              <CustomerAgreement />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/customer/products"
+          element={
+            <ProtectedRoute role="customer">
+              <CustomerProductList />
             </ProtectedRoute>
           }
         />

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Customer = require('../models/Customer');
 
 const protect = async (req, res, next) => {
   let token;
@@ -12,20 +13,28 @@ const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Get user from token
-      req.user = await User.findById(decoded.id).select('-password');
+      // Try to find user first, then customer
+      let user = await User.findById(decoded.id).select('-password');
+      
+      if (!user) {
+        user = await Customer.findById(decoded.id).select('-password');
+      }
 
-      next();
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' }); // ✅ return added
+      }
+
+      req.user = user;
+      return next();
     } catch (error) {
-      console.error(error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      console.error('Auth error:', error);
+      return res.status(401).json({ message: 'Not authorized, token failed' }); // ✅ return added
     }
-  }
-
-  if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
+  } else {
+    return res.status(401).json({ message: 'Not authorized, no token' }); // ✅ return added
   }
 };
+
 
 // Role-based middleware
 const authorize = (...roles) => {

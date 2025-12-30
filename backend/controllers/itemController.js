@@ -5,7 +5,7 @@ const Item = require('../models/Item');
 // @access  Private
 const getItems = async (req, res) => {
   try {
-    const items = await Item.find().sort({ createdAt: -1 }); // Sort by newest first
+    const items = await Item.find().sort({ createdAt: -1 });
     res.json(items);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -34,24 +34,29 @@ const getItemById = async (req, res) => {
 // @access  Private (Admin only)
 const createItem = async (req, res) => {
   try {
-    const { name, description, price, status } = req.body;
+    const { itemCode, itemCategory, name, unit, quantity, mrp, hsnCode, tax, status } = req.body;
 
     // Validation
-    if (!name || !description || !price) {
+    if (!itemCode || !itemCategory || !name || !unit || !quantity || !mrp || !hsnCode || tax === undefined) {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
-    // Check if item already exists
-    const itemExists = await Item.findOne({ name });
+    // Check if item code already exists
+    const itemExists = await Item.findOne({ itemCode });
     if (itemExists) {
-      return res.status(400).json({ message: 'Item with this name already exists' });
+      return res.status(400).json({ message: 'Item with this code already exists' });
     }
 
     // Create item
     const item = await Item.create({
+      itemCode,
+      itemCategory,
       name,
-      description,
-      price,
+      unit,
+      quantity: Number(quantity),
+      mrp: Number(mrp),
+      hsnCode,
+      tax: Number(tax),
       status: status || 'active',
     });
 
@@ -66,7 +71,7 @@ const createItem = async (req, res) => {
 // @access  Private (Admin only)
 const updateItem = async (req, res) => {
   try {
-    const { name, description, price, status } = req.body;
+    const { itemCode, itemCategory, name, unit, quantity, mrp, hsnCode, tax, status } = req.body;
 
     const item = await Item.findById(req.params.id);
 
@@ -74,18 +79,31 @@ const updateItem = async (req, res) => {
       return res.status(404).json({ message: 'Item not found' });
     }
 
-    // Update item using findByIdAndUpdate to avoid pre-save hooks
+    // Check if item code is being changed and if it already exists
+    if (itemCode && itemCode !== item.itemCode) {
+      const itemExists = await Item.findOne({ itemCode });
+      if (itemExists) {
+        return res.status(400).json({ message: 'Item with this code already exists' });
+      }
+    }
+
+    // Update item
     const updatedItem = await Item.findByIdAndUpdate(
       req.params.id,
       {
+        itemCode: itemCode || item.itemCode,
+        itemCategory: itemCategory || item.itemCategory,
         name: name || item.name,
-        description: description || item.description,
-        price: price !== undefined ? price : item.price,
+        unit: unit || item.unit,
+        quantity: quantity !== undefined ? Number(quantity) : item.quantity,
+        mrp: mrp !== undefined ? Number(mrp) : item.mrp,
+        hsnCode: hsnCode || item.hsnCode,
+        tax: tax !== undefined ? Number(tax) : item.tax,
         status: status || item.status,
       },
       {
-        new: true, // Return updated document
-        runValidators: true, // Run schema validators
+        new: true,
+        runValidators: true,
       }
     );
 

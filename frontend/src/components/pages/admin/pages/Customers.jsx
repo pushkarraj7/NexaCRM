@@ -16,6 +16,7 @@ const Customers = () => {
   };
 
   const [newCustomer, setNewCustomer] = useState({
+    customerId: "",
     name: "",
     email: "",
     phone: "",
@@ -29,13 +30,14 @@ const Customers = () => {
   const [editModal, setEditModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+
   const [editCustomer, setEditCustomer] = useState({
+    customerId: "",
     name: "",
     email: "",
     phone: "",
     status: "active",
   });
-
 
   // Fetch customers from backend
   useEffect(() => {
@@ -66,24 +68,27 @@ const Customers = () => {
     setLoading(true);
 
     // Validation
-    if (!newCustomer.name || !newCustomer.email || !newCustomer.phone || !newCustomer.password) {
+    if (!newCustomer.customerId || !newCustomer.name || !newCustomer.email || !newCustomer.phone || !newCustomer.password) {
       setError("Please fill in all fields");
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const token = localStorage.getItem('token'); // Get token from localStorage
+
+      const response = await fetch('http://localhost:5000/api/auth/register-customer', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Add Authorization header
         },
         body: JSON.stringify({
+          customerId: newCustomer.customerId,
           name: newCustomer.name,
           email: newCustomer.email,
           phone: newCustomer.phone,
           password: newCustomer.password,
-          role: 'customer',
           status: newCustomer.status,
         }),
       });
@@ -94,6 +99,7 @@ const Customers = () => {
         // Add new customer to local state
         setCustomers([...customers, {
           _id: data._id,
+          customerId: data.customerId,
           name: data.name,
           email: data.email,
           phone: data.phone,
@@ -104,7 +110,7 @@ const Customers = () => {
 
         // Reset form and close modal
         setShowModal(false);
-        setNewCustomer({ name: "", email: "", phone: "", password: "", status: "active" });
+        setNewCustomer({ customerId: "", name: "", email: "", phone: "", password: "", status: "active" });
         setError("");
 
         // Optional: Show success message
@@ -130,6 +136,7 @@ const Customers = () => {
   const handleEditCustomer = (customer) => {
     setSelectedCustomer(customer);
     setEditCustomer({
+      customerId: customer.customerId,
       name: customer.name,
       email: customer.email,
       phone: customer.phone,
@@ -143,12 +150,11 @@ const Customers = () => {
     setError("");
     setLoading(true);
 
-    if (!editCustomer.name || !editCustomer.email || !editCustomer.phone) {
+    if (!editCustomer.customerId || !editCustomer.name || !editCustomer.email || !editCustomer.phone) {
       setError("Please fill in all fields");
       setLoading(false);
       return;
     }
-
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:5000/api/auth/customers/${selectedCustomer._id}`, {
@@ -406,9 +412,13 @@ const Customers = () => {
                             <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
                               {customer.name?.charAt(0)}
                             </div>
-                            <div>
+                            {/* <div>
                               <p className="font-medium text-gray-900">{customer.name}</p>
                               <p className="text-sm text-gray-500">ID: #{customer._id?.slice(-6)}</p>
+                            </div> */}
+                            <div>
+                              <p className="font-medium text-gray-900">{customer.name}</p>
+                              <p className="text-sm text-gray-500">ID: {customer.customerId}</p>
                             </div>
                           </div>
                         </td>
@@ -538,6 +548,17 @@ const Customers = () => {
                   )}
 
                   <div>
+                    <label className="text-sm font-medium text-gray-700">Customer ID</label>
+                    <input
+                      type="text"
+                      value={newCustomer.customerId}
+                      onChange={(e) => setNewCustomer({ ...newCustomer, customerId: e.target.value })}
+                      className="mt-1 w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:outline-none transition"
+                      placeholder="CUST001"
+                    />
+                  </div>
+
+                  <div>
                     <label className="text-sm font-medium text-gray-700">Customer Name</label>
                     <input
                       type="text"
@@ -628,7 +649,7 @@ const Customers = () => {
                     onClick={() => {
                       setShowModal(false);
                       setError("");
-                      setNewCustomer({ name: "", email: "", phone: "", password: "", status: "active" });
+                      setNewCustomer({ customerId: "", name: "", email: "", phone: "", password: "", status: "active" });
                     }}
                     className="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
                     disabled={loading}
@@ -673,6 +694,14 @@ const Customers = () => {
                 <div className="px-8 py-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
+                    {/* Customer ID */}
+                    <div className="border rounded-xl p-4 bg-white shadow-sm">
+                      <p className="text-sm text-gray-500">Customer ID</p>
+                      <p className="text-base text-gray-900 mt-1">
+                        {selectedCustomer.customerId}
+                      </p>
+                    </div>
+
                     {/* Customer Name */}
                     <div className="border rounded-xl p-4 bg-white shadow-sm">
                       <p className="text-sm text-gray-500">Customer Name</p>
@@ -686,14 +715,14 @@ const Customers = () => {
                       <p className="text-sm text-gray-500">Status</p>
                       <span
                         className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold mt-2 ${selectedCustomer.status === "active"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-amber-100 text-amber-700"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-amber-100 text-amber-700"
                           }`}
                       >
                         <span
                           className={`w-2 h-2 rounded-full ${selectedCustomer.status === "active"
-                              ? "bg-emerald-500"
-                              : "bg-amber-500"
+                            ? "bg-emerald-500"
+                            : "bg-amber-500"
                             }`}
                         />
                         {selectedCustomer.status?.charAt(0).toUpperCase() +
@@ -783,6 +812,16 @@ const Customers = () => {
                       <span className="text-sm text-red-800">{error}</span>
                     </div>
                   )}
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Customer ID</label>
+                    <input
+                      type="text"
+                      value={editCustomer.customerId}
+                      onChange={(e) => setEditCustomer({ ...editCustomer, customerId: e.target.value })}
+                      className="mt-1 w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:outline-none transition"
+                    />
+                  </div>
 
                   <div>
                     <label className="text-sm font-medium text-gray-700">Customer Name</label>
@@ -939,7 +978,8 @@ const Customers = () => {
 
         </main>
       </div>
-    </div>);
+    </div>
+  );
 };
 
 export default Customers;

@@ -6,27 +6,69 @@ dotenv.config();
 
 const items = [
   {
+    itemCode: 'ITEM001',
+    itemCategory: 'Dairy',
     name: 'Full Cream Milk',
-    description: 'High quality full cream milk',
-    price: 60,
+    unit: 'ltr',
+    quantity: 100,
+    mrp: 60,
+    hsnCode: '0401',
+    tax: 5,
     status: 'active',
   },
   {
+    itemCode: 'ITEM002',
+    itemCategory: 'Dairy',
     name: 'Toned Milk',
-    description: 'Low fat toned milk',
-    price: 50,
+    unit: 'ltr',
+    quantity: 150,
+    mrp: 50,
+    hsnCode: '0401',
+    tax: 5,
     status: 'active',
   },
   {
+    itemCode: 'ITEM003',
+    itemCategory: 'Dairy',
     name: 'Double Toned Milk',
-    description: 'Very low fat milk',
-    price: 45,
+    unit: 'ltr',
+    quantity: 120,
+    mrp: 45,
+    hsnCode: '0401',
+    tax: 5,
     status: 'active',
   },
   {
+    itemCode: 'ITEM004',
+    itemCategory: 'Dairy',
     name: 'Buttermilk',
-    description: 'Fresh buttermilk',
-    price: 30,
+    unit: 'ltr',
+    quantity: 80,
+    mrp: 30,
+    hsnCode: '0403',
+    tax: 5,
+    status: 'active',
+  },
+  {
+    itemCode: 'ITEM005',
+    itemCategory: 'Dairy',
+    name: 'Curd',
+    unit: 'kg',
+    quantity: 50,
+    mrp: 55,
+    hsnCode: '0406',
+    tax: 5,
+    status: 'active',
+  },
+  {
+    itemCode: 'ITEM006',
+    itemCategory: 'Dairy',
+    name: 'Paneer',
+    unit: 'kg',
+    quantity: 30,
+    mrp: 350,
+    hsnCode: '0406',
+    tax: 12,
     status: 'active',
   },
 ];
@@ -44,6 +86,7 @@ const seedItems = async () => {
     await Item.insertMany(items);
 
     console.log('✅ Items seeded successfully!');
+    console.log(`📦 Seeded ${items.length} items`);
     process.exit(0);
   } catch (err) {
     console.error(`❌ Error: ${err.message}`);
