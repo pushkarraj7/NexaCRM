@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import Topbar from "../components/Topbar";
 import Sidebar from "../components/Sidebar";
+import { API_ENDPOINTS, getAuthHeaders } from "../../../../config/api";
+
 
 const ProformaInvoices = () => {
   const [proformas, setProformas] = useState([]);
@@ -27,18 +29,10 @@ const ProformaInvoices = () => {
     return () => document.removeEventListener("click", closeDropdown);
   }, [filterOpen]);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
   const fetchProformas = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/proforma', {
+      const response = await fetch(API_ENDPOINTS.PROFORMA, {
         headers: getAuthHeaders()
       });
 
@@ -59,7 +53,7 @@ const ProformaInvoices = () => {
     if (!convertModal) return;
 
     try {
-      const response = await fetch(`/api/proforma/${convertModal}/convert-to-invoice`, {
+      const response = await fetch(`${API_ENDPOINTS.PROFORMA}/${convertModal}/convert-to-invoice`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(convertData)
@@ -80,11 +74,10 @@ const ProformaInvoices = () => {
   };
 
   const handleCancelProforma = async (id) => {
-    // Use window.confirm explicitly to satisfy ESLint
     if (!window.confirm('Are you sure you want to cancel this proforma?')) return;
 
     try {
-      const response = await fetch(`/api/proforma/${id}`, {
+      const response = await fetch(`${API_ENDPOINTS.PROFORMA}/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });

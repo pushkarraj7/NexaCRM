@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Topbar from "../components/Topbar";
 import Sidebar from "../components/Sidebar";
+import { API_ENDPOINTS, getAuthHeaders } from "../../../../config/api";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -25,18 +26,11 @@ const Orders = () => {
     return () => document.removeEventListener("click", closeDropdown);
   }, [filterOpen]);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  };
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/orders', {
+      const response = await fetch(API_ENDPOINTS.ORDERS, {
         headers: getAuthHeaders()
       });
 
@@ -62,7 +56,7 @@ const Orders = () => {
 
   const handleDispatchUpdate = async (orderId, itemIndex, newDispatchQty) => {
     try {
-      const response = await fetch(`/api/orders/${orderId}/dispatch`, {
+      const response = await fetch(`${API_ENDPOINTS.ORDERS}/${orderId}/dispatch`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -96,7 +90,7 @@ const Orders = () => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      const response = await fetch(`/api/orders/${orderId}`, {
+      const response = await fetch(`${API_ENDPOINTS.ORDERS}/${orderId}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({ status: newStatus })

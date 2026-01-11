@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import Topbar from "../components/Topbar";
 import Sidebar from "../components/Sidebar";
+import { API_ENDPOINTS, getAuthHeaders } from "../../../../config/api";
+
 
 const SaleInvoices = () => {
   const [invoices, setInvoices] = useState([]);
@@ -26,18 +28,10 @@ const SaleInvoices = () => {
     return () => document.removeEventListener("click", closeDropdown);
   }, [filterOpen]);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/invoices', {
+      const response = await fetch(API_ENDPOINTS.INVOICES, {
         headers: getAuthHeaders()
       });
 
@@ -58,7 +52,7 @@ const SaleInvoices = () => {
     if (!paymentModal) return;
 
     try {
-      const response = await fetch(`/api/invoices/${paymentModal}/payment`, {
+      const response = await fetch(`${API_ENDPOINTS.INVOICES}/${paymentModal}/payment`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(paymentData)
@@ -98,9 +92,9 @@ const SaleInvoices = () => {
   };
 
   const formatCurrency = (amount) => {
-    return `₹${parseFloat(amount).toLocaleString('en-IN', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
+    return `₹${parseFloat(amount).toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     })}`;
   };
 
@@ -114,7 +108,7 @@ const SaleInvoices = () => {
   const filteredInvoices = invoices.filter(invoice => {
     const customerName = getCustomerName(invoice.customerId).toLowerCase();
     const invoiceNumber = (invoice.invoiceNumber || '').toLowerCase();
-    
+
     const matchesSearch =
       customerName.includes(searchTerm.toLowerCase()) ||
       invoiceNumber.includes(searchTerm.toLowerCase());
@@ -428,7 +422,7 @@ const SaleInvoices = () => {
                 <input
                   type="number"
                   value={paymentData.paidAmount}
-                  onChange={(e) => setPaymentData({...paymentData, paidAmount: parseFloat(e.target.value)})}
+                  onChange={(e) => setPaymentData({ ...paymentData, paidAmount: parseFloat(e.target.value) })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   step="0.01"
                 />
@@ -437,7 +431,7 @@ const SaleInvoices = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
                 <select
                   value={paymentData.paymentMethod}
-                  onChange={(e) => setPaymentData({...paymentData, paymentMethod: e.target.value})}
+                  onChange={(e) => setPaymentData({ ...paymentData, paymentMethod: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select method</option>

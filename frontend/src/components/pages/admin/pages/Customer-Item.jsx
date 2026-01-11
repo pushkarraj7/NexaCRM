@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Topbar from "../components/Topbar";
 import Sidebar from "../components/Sidebar";
+import { API_ENDPOINTS } from '../../../../config/api';
 
 const CustomerItem = () => {
     const [customers, setCustomers] = useState([]);
@@ -50,10 +51,16 @@ const CustomerItem = () => {
                 Authorization: `Bearer ${token}`,
             };
 
+            // const [customersRes, itemsRes, agreementsRes] = await Promise.all([
+            //     fetch("/api/auth/customers", { headers }),
+            //     fetch("/api/items", { headers }),
+            //     fetch("/api/agreements", { headers }),
+            // ]);
+
             const [customersRes, itemsRes, agreementsRes] = await Promise.all([
-                fetch("/api/auth/customers", { headers }),
-                fetch("/api/items", { headers }),
-                fetch("/api/agreements", { headers }),
+                fetch(API_ENDPOINTS.CUSTOMERS, { headers }),
+                fetch(API_ENDPOINTS.ITEMS, { headers }),
+                fetch(API_ENDPOINTS.AGREEMENTS, { headers }),
             ]);
 
             // Check responses
@@ -91,7 +98,7 @@ const CustomerItem = () => {
             setLoading(false);
         }
     };
-    
+
     const handleSubmit = async () => {
         if (!formData.customerId || formData.items.length === 0) {
             alert("Please select customer and at least one item");
@@ -99,9 +106,13 @@ const CustomerItem = () => {
         }
 
         try {
+            // const url = editingId
+            //     ? `/api/agreements/${editingId}`
+            //     : "/api/agreements";
+
             const url = editingId
-                ? `/api/agreements/${editingId}`
-                : "/api/agreements";
+                ? `${API_ENDPOINTS.AGREEMENTS}/${editingId}`
+                : API_ENDPOINTS.AGREEMENTS;
 
 
             const method = editingId ? "PUT" : "POST";
@@ -153,7 +164,8 @@ const CustomerItem = () => {
         if (!window.confirm("Are you sure you want to delete this agreement?")) return;
 
         try {
-            const response = await fetch(`/api/agreements/${id}`, {  // ✅ Changed from /api/auth/customer-items
+            // const response = await fetch(`/api/agreements/${id}`, {  // ✅ Changed from /api/auth/customer-items
+            const response = await fetch(`${API_ENDPOINTS.AGREEMENTS}/${id}`, {
                 method: "DELETE",
                 headers: getAuthHeaders()
             });

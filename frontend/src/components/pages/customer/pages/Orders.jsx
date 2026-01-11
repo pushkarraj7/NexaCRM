@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { useNavigate } from "react-router-dom";
+import { API_ENDPOINTS, getAuthHeaders } from "../../../../config/api";
 
 
 const CustomerOrders = () => {
@@ -32,13 +33,8 @@ const CustomerOrders = () => {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem('token');
-
-      const response = await fetch(`/api/orders/customer/${customerId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await fetch(`${API_ENDPOINTS.ORDERS}/customer/${customerId}`, {
+        headers: getAuthHeaders()
       });
 
       const data = await response.json();

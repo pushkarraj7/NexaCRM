@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import Topbar from "../components/Topbar";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
+import { API_ENDPOINTS, getAuthHeaders } from "../../../../config/api";
+
 
 // Main Product List Component
 const CustomerProductList = () => {
@@ -40,11 +42,8 @@ const CustomerProductList = () => {
         return;
       }
 
-      const response = await fetch(`/api/customer-items/customer/${customerId}/items`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await fetch(`${API_ENDPOINTS.CUSTOMER_ITEMS}/customer/${customerId}/items`, {
+        headers: getAuthHeaders()
       });
 
       const data = await response.json();
@@ -102,12 +101,9 @@ const CustomerProductList = () => {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch('/api/orders', {
+      const response = await fetch(API_ENDPOINTS.ORDERS, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           customerId,
           items: orderItems,
