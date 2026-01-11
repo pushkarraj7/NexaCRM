@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_ENDPOINTS } from '../../config/api';
 
 const Login = () => {
   const [identifier, setIdentifier] = useState("");
@@ -24,17 +25,12 @@ const Login = () => {
     try {
       // Choose endpoint based on login type
       const endpoint = loginType === "customer"
-        ? 'http://localhost:5000/api/auth/customer-login'
-        : 'http://localhost:5000/api/auth/login';
-
-      // const body = loginType === "customer"
-      //   ? { identifier, password } // Customer can use customerId or email
-      //   : { email: identifier, password }; // Staff uses email only
+        ? `${API_ENDPOINTS.LOGIN.replace('/login', '/customer-login')}`  // ✅ UPDATED
+        : API_ENDPOINTS.LOGIN;  // ✅ UPDATED
 
       const body = loginType === "customer"
         ? { identifier, password } // backend expects `identifier`
         : { email: identifier, password };
-
 
       const response = await fetch(endpoint, {
         method: 'POST',
