@@ -21,7 +21,20 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://yourdomain.com',           // Replace with your actual domain
+    'https://www.yourdomain.com',       // Replace with your actual domain
+    'https://nexacrm-frontend.onrender.com',  // If you use Render for frontend
+    'https://nexacrm-frontend.vercel.app'     // If you use Vercel for frontend
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
