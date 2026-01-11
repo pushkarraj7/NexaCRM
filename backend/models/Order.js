@@ -22,6 +22,12 @@ const orderSchema = new mongoose.Schema({
             required: true,
             min: 1
         },
+        dispatchQuantity: {
+            type: Number,
+            default: function () {
+                return this.quantity; // Default to ordered quantity
+            }
+        },
         price: {
             type: Number,
             required: true
@@ -45,7 +51,7 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
+        enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'completed'],
         default: 'pending'
     },
     orderDate: {
@@ -63,7 +69,7 @@ const orderSchema = new mongoose.Schema({
 });
 
 // Generate order number before saving - FIXED VERSION
-orderSchema.pre('save', async function() {
+orderSchema.pre('save', async function () {
     if (this.isNew && !this.orderNumber) {
         // Get the count of existing orders
         const count = await this.constructor.countDocuments();

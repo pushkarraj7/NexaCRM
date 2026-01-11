@@ -492,6 +492,40 @@ exports.generateDocumentsForOrder = async (req, res) => {
     }
 };
 
+
+// Add or update this function
+exports.updateOrderItemDispatch = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { itemUpdates } = req.body; // Array of { itemIndex, dispatchQuantity }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Update dispatch quantities
+    itemUpdates.forEach(update => {
+      if (order.items[update.itemIndex]) {
+        order.items[update.itemIndex].dispatchQuantity = update.dispatchQuantity;
+        // Recalculate subtotal based on dispatch quantity
+        const item = order.items[update.itemIndex];
+        const discountedPrice = item.price * (1 - item.discount / 100);
+        item.subtotal = discountedPrice * update.dispatchQuantity;
+      }
+    });
+
+    // Recalculate total amount
+    order.totalAmount = order.items.reduce((sum, item) => sum + item.subtotal, 0);
+
+    await order.save();
+    res.json({ success: true, data: order });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 // Export helper functions
 exports.autoGenerateProforma = autoGenerateProforma;
 exports.autoGenerateInvoice = autoGenerateInvoice;

@@ -33,4 +33,6 @@ router.delete('/:id', orderController.deleteOrder);
 // Add this route for manual testing
 router.post('/:id/generate-documents', orderController.generateDocumentsForOrder);
 
+router.put('/:orderId/dispatch', orderController.updateOrderItemDispatch);
+
 module.exports = router;

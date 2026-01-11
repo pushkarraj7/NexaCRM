@@ -11,6 +11,10 @@ const Orders = () => {
   const [expandedOrders, setExpandedOrders] = useState(new Set());
   const [openStatusDropdown, setOpenStatusDropdown] = useState(null);
 
+  const [editingDispatch, setEditingDispatch] = useState(null); // { orderId, itemIndex }
+  const [dispatchValues, setDispatchValues] = useState({}); // Store temp dispatch quantities
+
+
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -53,6 +57,41 @@ const Orders = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+
+  const handleDispatchUpdate = async (orderId, itemIndex, newDispatchQty) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}/dispatch`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          itemUpdates: [{ itemIndex, dispatchQuantity: newDispatchQty }]
+        })
+      });
+
+      if (response.ok) {
+        alert('Dispatch quantity updated successfully!');
+        fetchOrders();
+        setEditingDispatch(null);
+        setDispatchValues({});
+      } else {
+        alert('Failed to update dispatch quantity');
+      }
+    } catch (error) {
+      console.error('Error updating dispatch quantity:', error);
+      alert('Failed to update dispatch quantity');
+    }
+  };
+
+  const startEditingDispatch = (orderId, itemIndex, currentDispatch) => {
+    setEditingDispatch({ orderId, itemIndex });
+    setDispatchValues({ [`${orderId}-${itemIndex}`]: currentDispatch });
+  };
+
+  const cancelEditingDispatch = () => {
+    setEditingDispatch(null);
+    setDispatchValues({});
   };
 
   const handleStatusChange = async (orderId, newStatus) => {
@@ -127,12 +166,22 @@ const Orders = () => {
     switch (status?.toLowerCase()) {
       case 'completed':
         return 'bg-emerald-100 text-emerald-700';
+
       case 'pending':
         return 'bg-amber-100 text-amber-700';
-      case 'cancelled':
-        return 'bg-red-100 text-red-700';
+
       case 'processing':
         return 'bg-blue-100 text-blue-700';
+
+      case 'shipped':
+        return 'bg-indigo-100 text-indigo-700';
+
+      case 'delivered':
+        return 'bg-green-100 text-green-700';
+
+      case 'cancelled':
+        return 'bg-red-100 text-red-700';
+
       default:
         return 'bg-gray-100 text-gray-700';
     }
@@ -314,7 +363,7 @@ const Orders = () => {
 
                     {filterOpen && (
                       <div className="absolute z-20 mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                        {['all', 'pending', 'processing', 'completed', 'cancelled'].map((status) => (
+                        {['all', 'pending', 'processing', 'shipped', 'delivered', 'completed', 'cancelled'].map((status) => (
                           <button
                             key={status}
                             onClick={() => {
@@ -497,7 +546,7 @@ const Orders = () => {
                                 {/* Dropdown */}
                                 {openStatusDropdown === order._id && (
                                   <div className="absolute z-30 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-                                    {["pending", "processing", "completed", "cancelled"].map((status) => (
+                                    {["pending", "processing", "shipped", "delivered", "completed", "cancelled"].map((status) => (
                                       <button
                                         key={status}
                                         onClick={() => {
@@ -526,39 +575,97 @@ const Orders = () => {
                                 <div className="ml-12">
                                   <h4 className="text-sm font-semibold text-gray-700 mb-3">Order Items:</h4>
                                   <div className="space-y-2">
-                                    {order.items?.map((item, idx) => (
-                                      <div key={idx} className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
-                                        <div className="flex items-center gap-3">
-                                          <div className="w-10 h-10 bg-indigo-100 rounded flex items-center justify-center">
-                                            <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                            </svg>
+                                    {order.items?.map((item, idx) => {
+                                      const isEditingThis = editingDispatch?.orderId === orderId && editingDispatch?.itemIndex === idx;
+                                      const dispatchKey = `${orderId}-${idx}`;
+                                      const currentDispatch = item.dispatchQuantity ?? item.quantity;
+
+                                      return (
+                                        <div key={idx} className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200">
+                                          <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-indigo-100 rounded flex items-center justify-center">
+                                              <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                              </svg>
+                                            </div>
+                                            <div>
+                                              <div className="font-medium text-gray-900">{item.itemName}</div>
+                                              <div className="text-xs text-gray-500">Code: {item.itemId?.itemCode}</div>
+                                            </div>
                                           </div>
-                                          <div>
-                                            <div className="font-medium text-gray-900">{item.itemName}</div>
-                                            <div className="text-xs text-gray-500">Code: {item.itemId?.itemCode}</div>
+                                          <div className="flex items-center gap-6 text-sm">
+                                            <div className="text-right">
+                                              <div className="text-gray-500">Price</div>
+                                              <div className="font-medium">{formatCurrency(item.price)}</div>
+                                            </div>
+                                            <div className="text-right">
+                                              <div className="text-gray-500">Ordered Qty</div>
+                                              <div className="font-medium">{item.quantity}</div>
+                                            </div>
+                                            <div className="text-right">
+                                              <div className="text-gray-500">Dispatch Qty</div>
+                                              {isEditingThis ? (
+                                                <div className="flex items-center gap-1">
+                                                  <input
+                                                    type="number"
+                                                    min="0"
+                                                    max={item.quantity}
+                                                    value={dispatchValues[dispatchKey] ?? currentDispatch}
+                                                    onChange={(e) => setDispatchValues({
+                                                      ...dispatchValues,
+                                                      [dispatchKey]: parseInt(e.target.value) || 0
+                                                    })}
+                                                    className="w-16 px-2 py-1 border border-gray-300 rounded text-center focus:outline-none focus:border-indigo-500"
+                                                    autoFocus
+                                                  />
+                                                  <button
+                                                    onClick={() => handleDispatchUpdate(orderId, idx, dispatchValues[dispatchKey])}
+                                                    className="p-1 text-green-600 hover:bg-green-50 rounded"
+                                                    title="Save"
+                                                  >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                  </button>
+                                                  <button
+                                                    onClick={cancelEditingDispatch}
+                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                    title="Cancel"
+                                                  >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                  </button>
+                                                </div>
+                                              ) : (
+                                                <div className="flex items-center gap-2">
+                                                  <span className={`font-medium ${currentDispatch !== item.quantity ? 'text-orange-600' : ''}`}>
+                                                    {currentDispatch}
+                                                  </span>
+                                                  <button
+                                                    onClick={() => startEditingDispatch(orderId, idx, currentDispatch)}
+                                                    className="p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+                                                    title="Edit dispatch quantity"
+                                                  >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                  </button>
+                                                </div>
+                                              )}
+                                            </div>
+                                            <div className="text-right">
+                                              <div className="text-gray-500">Discount</div>
+                                              <div className="font-medium text-green-600">{item.discount}%</div>
+                                            </div>
+                                            <div className="text-right">
+                                              <div className="text-gray-500">Subtotal</div>
+                                              <div className="font-bold text-gray-900">{formatCurrency(item.subtotal)}</div>
+                                            </div>
                                           </div>
                                         </div>
-                                        <div className="flex items-center gap-6 text-sm">
-                                          <div className="text-right">
-                                            <div className="text-gray-500">Price</div>
-                                            <div className="font-medium">{formatCurrency(item.price)}</div>
-                                          </div>
-                                          <div className="text-right">
-                                            <div className="text-gray-500">Qty</div>
-                                            <div className="font-medium">{item.quantity}</div>
-                                          </div>
-                                          <div className="text-right">
-                                            <div className="text-gray-500">Discount</div>
-                                            <div className="font-medium text-green-600">{item.discount}%</div>
-                                          </div>
-                                          <div className="text-right">
-                                            <div className="text-gray-500">Subtotal</div>
-                                            <div className="font-bold text-gray-900">{formatCurrency(item.subtotal)}</div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                   {order.notes && (
                                     <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
