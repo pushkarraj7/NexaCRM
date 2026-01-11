@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import Topbar from "../components/Topbar";
 import Sidebar from "../components/Sidebar";
+import { API_ENDPOINTS } from '../../../../config/api'; // ✅ ADDED THIS
+
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -40,7 +42,8 @@ const Agreements = () => {
   const fetchCustomers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/auth/customers", {
+      // const response = await fetch("http://localhost:5000/api/auth/customers", {
+      const response = await fetch(API_ENDPOINTS.CUSTOMERS, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -74,6 +77,7 @@ const Agreements = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      // const response = await fetch('http://localhost:5000/api/agreements', {
       const response = await fetch('http://localhost:5000/api/agreements', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -99,7 +103,8 @@ const Agreements = () => {
   const handleCreateAgreement = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/agreements', {
+      // const response = await fetch('http://localhost:5000/api/agreements', {
+      const response = await fetch(API_ENDPOINTS.AGREEMENTS, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

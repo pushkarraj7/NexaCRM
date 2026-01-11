@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Topbar from "../components/Topbar";
 import Sidebar from "../components/Sidebar";
+import { API_ENDPOINTS } from '../../../../config/api';
 
 const Items = () => {
   const [showModal, setShowModal] = useState(false);
@@ -92,7 +93,8 @@ const Items = () => {
   const fetchItems = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/items', {
+      // const response = await fetch('http://localhost:5000/api/items', {
+      const response = await fetch(API_ENDPOINTS.ITEMS, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -123,7 +125,8 @@ const Items = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/items', {
+      // const response = await fetch('http://localhost:5000/api/items', {
+      const response = await fetch(API_ENDPOINTS.ITEMS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -204,7 +207,8 @@ const Items = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/items/${selectedItem._id}`, {
+      // const response = await fetch(`http://localhost:5000/api/items/${selectedItem._id}`, {
+      const response = await fetch(`${API_ENDPOINTS.ITEMS}/${selectedItem._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -256,7 +260,8 @@ const Items = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/items/${selectedItem._id}`, {
+      // const response = await fetch(`http://localhost:5000/api/items/${selectedItem._id}`, {
+      const response = await fetch(`${API_ENDPOINTS.ITEMS}/${selectedItem._id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

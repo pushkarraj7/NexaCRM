@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Topbar from "../components/Topbar";
 import Sidebar from "../components/Sidebar";
+import { API_ENDPOINTS } from '../../../../config/api'; // ✅ ADDED THIS
 
 const Customers = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,7 +48,7 @@ const Customers = () => {
   const fetchCustomers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/auth/customers', {
+      const response = await fetch(API_ENDPOINTS.CUSTOMERS, { // ✅ CHANGED
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -75,13 +76,13 @@ const Customers = () => {
     }
 
     try {
-      const token = localStorage.getItem('token'); // Get token from localStorage
+      const token = localStorage.getItem('token');
 
-      const response = await fetch('http://localhost:5000/api/auth/register-customer', {
+      const response = await fetch(API_ENDPOINTS.REGISTER_CUSTOMER, { // ✅ CHANGED
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Add Authorization header
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           customerId: newCustomer.customerId,
@@ -96,7 +97,6 @@ const Customers = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Add new customer to local state
         setCustomers([...customers, {
           _id: data._id,
           customerId: data.customerId,
@@ -108,12 +108,10 @@ const Customers = () => {
           createdAt: data.createdAt,
         }]);
 
-        // Reset form and close modal
         setShowModal(false);
         setNewCustomer({ customerId: "", name: "", email: "", phone: "", password: "", status: "active" });
         setError("");
 
-        // Optional: Show success message
         alert("Customer created successfully!");
       } else {
         setError(data.message || 'Failed to create customer');
@@ -157,7 +155,7 @@ const Customers = () => {
     }
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/auth/customers/${selectedCustomer._id}`, {
+      const response = await fetch(`${API_ENDPOINTS.CUSTOMERS}/${selectedCustomer._id}`, { // ✅ CHANGED
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +167,6 @@ const Customers = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Update customer in local state
         setCustomers(customers.map(c =>
           c._id === selectedCustomer._id ? { ...c, ...editCustomer } : c
         ));
@@ -201,7 +198,7 @@ const Customers = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/auth/customers/${selectedCustomer._id}`, {
+      const response = await fetch(`${API_ENDPOINTS.CUSTOMERS}/${selectedCustomer._id}`, { // ✅ CHANGED
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -209,7 +206,6 @@ const Customers = () => {
       });
 
       if (response.ok) {
-        // Remove customer from local state
         setCustomers(customers.filter(c => c._id !== selectedCustomer._id));
         setDeleteModal(false);
         setSelectedCustomer(null);
@@ -412,10 +408,6 @@ const Customers = () => {
                             <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
                               {customer.name?.charAt(0)}
                             </div>
-                            {/* <div>
-                              <p className="font-medium text-gray-900">{customer.name}</p>
-                              <p className="text-sm text-gray-500">ID: #{customer._id?.slice(-6)}</p>
-                            </div> */}
                             <div>
                               <p className="font-medium text-gray-900">{customer.name}</p>
                               <p className="text-sm text-gray-500">ID: {customer.customerId}</p>
@@ -975,7 +967,6 @@ const Customers = () => {
               </div>
             </div>
           )}
-
         </main>
       </div>
     </div>
